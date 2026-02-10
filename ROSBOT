@@ -1,0 +1,87 @@
+import serial
+import argparse
+import threading
+import json
+
+def read_serial():
+    while True:
+        data = ser.readline().decode('utf-8')
+        if data:
+            print(f"Received: {data}", end='')
+
+def main():
+    global ser
+    parser = argparse.ArgumentParser(description='Serial JSON Communication')
+    parser.add_argument('port', type=str, help='Serial port name (e.g., COM1 or /dev/ttyUSB0)')
+
+    args = parser.parse_args()
+
+    ser = serial.Serial(args.port, baudrate=115200, dsrdtr=None)
+    ser.setRTS(False)
+    ser.setDTR(False)
+
+    serial_recv_thread = threading.Thread(target=read_serial)
+    serial_recv_thread.daemon = True
+    serial_recv_thread.start()
+
+    try:
+        while True:
+            command = input("")
+            ser.write(command.encode() + b'\n')
+    except KeyboardInterrupt:
+        pass
+    finally:
+        ser.close()
+
+
+if __name__ == "__main__":
+    main()
+
+global L_speed
+global R_speed
+
+
+def send_command(command_dict):
+    json_cmd = json.dumps((command_dict), '\n')
+    ser.write(json_cmd.encode())
+
+
+def go_forward():
+    L_speed = 0.5
+    R_speed = 0.5
+    send_command({"T":1,"L":L_speed,"R":R_speed})
+
+def go_backward():
+    L_speed = -0.5
+    R_speed = -0.5
+    send_command({"T":1,"L":L_speed,"R":R_speed})
+
+def go_right():
+    L_speed = 0.5
+    R_speed = -0.5
+    send_command({"T":1, "L": L_speed, "R": R_speed})
+
+def go_left():
+    L_speed = -0.5
+    R_speed = 0.5
+    send_command({"T":1, "L": L_speed, "R": R_speed})
+
+def go_frontright():
+    L_speed = 0.5
+    R_speed = 0.25
+    send_command({"T":1, "L": L_speed, "R": R_speed})
+
+def go_frontleft():
+    L_speed = 0.25
+    R_speed = 0.5
+    send_command({"T":1, "L": L_speed, "R": R_speed})
+
+def go_backright():
+    L_speed = -0.5
+    R_speed = -0.25
+    send_command({"T":1, "L": L_speed, "R": R_speed})
+
+def go_left():
+    L_speed = -0.25
+    R_speed = -0.5
+    send_command({"T":1, "L": L_speed, "R": R_speed})
